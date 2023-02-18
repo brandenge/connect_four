@@ -2,7 +2,7 @@ require 'spec_helper'
 
 RSpec.describe Player do
   before(:each) do
-    @player = Player.new
+    @player = Player.new(*PLAYER_1.values)
   end
 
   describe '#initialize' do
