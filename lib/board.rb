@@ -19,8 +19,9 @@ class Board
   end
 
   def render_board
-    puts [*('A'..'G')].join
-    @grid.each { |row| puts row.join }
+    padding = '      '
+    puts padding + [*('A'..'G')].join
+    @grid.each { |row| puts padding + row.join }
     @grid
   end
 end
