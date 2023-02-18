@@ -1,5 +1,9 @@
+require 'date'
+
 class Turn
-  def initialize
-    
+  def initialize(player, column)
+    @player = player
+    @column = column
+    @timestamp = DateTime.now
   end
 end
