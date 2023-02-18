@@ -1,4 +1,5 @@
 class Board
+  attr_reader :grid 
   def initialize
     @grid = initialize_board
   end
@@ -10,7 +11,10 @@ class Board
   end
 
   def render_board
-    @grid.each { |row| puts row.join(' ') }
+    puts [*('A'..'G')].join(" ")
+    board = []
+    board = @grid.each { |row| puts row.join(' ') }
+    board
   end
 end
 
