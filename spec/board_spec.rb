@@ -13,7 +13,7 @@ RSpec.describe Board do
 
   describe '#grid' do
     it 'has a grid' do
-      expect(@board.grid).to eq(INITIAL_GRID)
+      expect(@board.grid).to eq([])
     end
   end
 
@@ -30,6 +30,7 @@ RSpec.describe Board do
 
   describe '#render_board' do
     it 'returns the updated grid' do
+      @board.initialize_board
       expect(@board.render_board).to eq(INITIAL_GRID)
     end
   end
