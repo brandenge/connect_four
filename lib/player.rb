@@ -1,8 +1,6 @@
 class Player
-  def initialize
-    @name = get_name
-    @symbol = get_symbol
-  end
 
-  
+  def initialize (name)
+    @name = get_name
+  end
 end
