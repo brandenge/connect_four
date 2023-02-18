@@ -1,3 +1,4 @@
+require 'spec_helper'
 
 RSpec.describe Board do
   before(:each) do
@@ -29,7 +30,7 @@ RSpec.describe Board do
 
   describe '#render_board' do
     it 'returns the updated grid' do
-      expect(@board.print_board).to eq(INITIAL_GRID)
+      expect(@board.render_board).to eq(INITIAL_GRID)
     end
   end
 end
