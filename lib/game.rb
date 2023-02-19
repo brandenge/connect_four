@@ -7,7 +7,7 @@ class Game
   include Title
 
   def initialize
-    @players = [Player.new('Player 1'), Player.new('Player 2', false)]
+    @players = [Player.new('Player 1', :blue), Player.new('Player 2', :red, false)]
     @board = Board.new
   end
 
@@ -17,13 +17,12 @@ class Game
   end
 
   def play_game
-    @board.initialize_board
     @board.render_board
     until game_over?
       @players.each do |player|
         break if game_over?
         @board.next_turn(player)
-        @board.update
+        @board.update_board
       end
     end
   end
@@ -50,5 +49,5 @@ class Game
   end
 end
 
-game = Game.new
-game.start
+# game = Game.new
+# game.start
