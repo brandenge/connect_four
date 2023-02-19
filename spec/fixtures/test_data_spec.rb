@@ -5,17 +5,15 @@ module TestData
     red: '[0;31;5;41;101mO[0m'
   }.freeze
 
-  INITIAL_GRID ||= [*(1..6)].map do |row|
-    [*(1..7)].map do |col|
-      (COLORS[:white])
-    end
-  end.freeze
-
   PLAYER_1 ||= {
-    name: 'Branden'
+    name: 'Branden',
+    token: :blue,
+    is_human: false
   }.freeze
 
   PLAYER_2 ||= {
-    name: 'Alec'
+    name: 'Alec',
+    token: :red,
+    is_human: false
   }.freeze
 end
