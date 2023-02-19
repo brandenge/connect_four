@@ -16,4 +16,18 @@ RSpec.describe Turn do
       expect(@turn_1).to be_a(Turn)
     end
   end
+
+  describe '#has attributes' do
+    it 'has player' do
+      expect(@turn_1.player).to be_a(Player)
+    end
+
+    it 'has column selection' do 
+      expect(@turn_1.column).to eq('A')
+    end
+
+    it 'has timestamp' do
+      expect(@turn_1.timestamp).to be_a(DateTime)
+    end
+  end
 end
