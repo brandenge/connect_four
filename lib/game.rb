@@ -54,6 +54,3 @@ class Game
     WELCOME
   end
 end
-
-game = Game.new
-game.start
