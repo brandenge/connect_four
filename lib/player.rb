@@ -21,7 +21,7 @@ class Player
     player_selection = gets.chomp.capitalize
     until valid_columns.include?(player_selection)
       puts "Sorry, that is not a valid selection, please choose from one of the following: #{valid_columns.join(", ")}."
-      player_selection = gets.chomp
+      player_selection = gets.chomp.capitalize
     end
     player_selection
   end
