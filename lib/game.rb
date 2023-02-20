@@ -17,12 +17,18 @@ class Game
   end
 
   def play_game
-    @board.render_board
+    @board.render
     until game_over?
       @players.each do |player|
         break if game_over?
         @board.next_turn(player)
-        @board.update_board
+        @board.update
+        if !player.is_human?
+          sleep(1)
+          puts '******* Beep Boop Bop *******'
+          sleep(1)
+        end
+        @board.render
       end
     end
   end
@@ -49,5 +55,5 @@ class Game
   end
 end
 
-# game = Game.new
-# game.start
+game = Game.new
+game.start
