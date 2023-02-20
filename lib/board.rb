@@ -1,8 +1,13 @@
+require './lib/messages'
+
 class Board
+  include Messages
+
   COLORS = {
     blue: '[0;36;5;44;104mX[0m',
     white: '[0;37;5;47;107m.[0m',
-    red: '[0;31;5;41;101mO[0m'
+    red: '[0;31;5;41;101mO[0m',
+    grey: '[0;37;5;40;100m [0m'
   }.freeze
 
   attr_reader :grid
@@ -24,13 +29,37 @@ class Board
   end
 
   def render
+    blocks = {
+      line: '[0;37;5;40;100m                                                                        [0m',
+      border: '[0;37;5;40;100m  [0m',
+      blue: '[0;36;5;44;104m        [0m',
+      white: '[0;37;5;47;107m        [0m',
+      red: '[0;31;5;41;101m        [0m'
+    }
     padding = '      '
-    puts "\n\n" + padding + @columns.join
-    @grid.each { |row| puts padding + row.join }
+    puts "\n\n"
+    render_col_text
+    @grid.each do |row|
+      puts padding + blocks[:line] 
+      row = row.map do |slot|
+        case slot
+          when COLORS[:white] then blocks[:white]
+          when COLORS[:blue] then blocks[:blue]
+          when COLORS[:red] then blocks[:red]
+        end
+      end
+      row = padding + blocks[:border] + row.join(blocks[:border]) + blocks[:border]
+      puts "#{row}\n#{row}\n#{row}\n#{row}\n"
+    end
+    puts padding + blocks[:line]
     puts "\n\n"
     @grid
   end
 
+  def render_col_text
+    puts COLUMN_TEXT
+  end
+  
   def next_turn(player)
     if player.is_human?
       @turns << Turn.new(player, player.player_move(valid_columns))
@@ -122,8 +151,3 @@ class Board
     end
   end
 end
-
-
-# board = Board.new
-# board.initialize_board
-# board.valid_columns
