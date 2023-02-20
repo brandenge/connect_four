@@ -23,16 +23,37 @@ RSpec.describe Board do
       @columns
     end
 
+    def @board.turns
+      @turns
+    end
+
     def @board.set_turns(turns)
       @turns = turns
+    end
+
+    def @board.set_grid(grid)
+      @grid = grid
     end
 
     @mock_grid = [*(1..6)].map do |row|
       [*(1..7)].map { |col| COLORS[:white] }
     end
 
+    def find_lowest_row(player_move)
+      slot_index = COLUMNS.index(player_move)
+      row_index = @mock_grid.length - 1
+      @mock_grid.each_with_index do |row, index|
+        if row[slot_index] == COLORS[:white]
+          row_index = index
+        else
+          break
+        end
+      end
+      row_index
+    end
+
     def mock_turn(token, column)
-      @mock_grid[find_lowest_row(column)][@board.columns.find(column)] = token
+      @mock_grid[find_lowest_row(column)][COLUMNS.index(column)] = COLORS[token]
     end
   end
 
@@ -48,17 +69,15 @@ RSpec.describe Board do
     end
   end
 
-  describe '@@columns' do
-    it 'has a columns class variable for storing an array of columns' do
-      it 'is an array of all of the columns of the board/grid' do
-        expect(Board.columns).to eq([*('A'..'G')])
-      end
+  describe '@columns' do
+    it 'is an array of all of the columns of the board/grid' do
+      expect(@board.columns).to eq([*('A'..'G')])
     end
   end
 
   describe '#grid' do
     it 'has a grid' do
-      expect(@board.grid).to eq(INITIAL_GRID)
+      expect(@board.grid).to eq(@mock_grid)
     end
   end
 
@@ -70,20 +89,20 @@ RSpec.describe Board do
     it 'returns an array of Turn objects' do
       @board.next_turn(@player_1)
       @board.next_turn(@player_2)
-      actual = @board.next_turn(@player_1).all? { |turn| turn.is_a?(Turn) }
+      actual = @board.turns.all? { |turn| turn.is_a?(Turn) }
       expect(actual).to eq(true)
     end
   end
 
   describe '#initialize_board' do
     it 'returns the initial grid' do
-      expect(@board.initialize_board).to eq(INITIAL_GRID)
+      expect(@board.initialize_board).to eq(@mock_grid)
     end
   end
 
   describe '#render' do
     it 'returns the updated grid' do
-      expect(@board.render).to eq(INITIAL_GRID)
+      expect(@board.render).to eq(@mock_grid)
     end
   end
 
@@ -105,7 +124,7 @@ RSpec.describe Board do
   describe '#update' do
     it 'does nothing at the start' do
       @board.update
-      expect(@board.grid).to eq(INITIAL_GRID)
+      expect(@board.grid).to eq(@mock_grid)
     end
 
     it 'returns nil' do
@@ -201,25 +220,26 @@ RSpec.describe Board do
       @mock_grid = [*(1..6)].map do |row|
         [*(1..7)].map { |col| COLORS[:blue] }
       end
+      @board.set_grid(@mock_grid)
       expect(@board.valid_columns).to eq([])
     end
   end
 
   describe '#winner' do
     it 'returns nil when there is no winner' do
-      expect(@board.winner).to eq(nil)
+      expect(@board.winner(5, 0)).to eq(nil)
     end
 
     it 'returns the winning player\'s color when they have won' do
       @board.set_turns([@turn_1, @turn_2, @turn_3, @turn_4, @turn_5, @turn_6, @turn_7])
       @board.update
-      expect(@board.winner).to eq(:blue)
+      expect(@board.winner(2, 0)).to eq(@board.turns.last.player)
     end
 
     it 'returns a different winning player\'s color when they have won' do
       @board.set_turns([@turn_1, @turn_2, @turn_4, @turn_5, @turn_6, @turn_7, @turn_8])
       @board.update
-      expect(@board.winner).to eq(:red)
+      expect(@board.winner(2, 1)).to eq(@board.turns.last.player)
     end
   end
 end

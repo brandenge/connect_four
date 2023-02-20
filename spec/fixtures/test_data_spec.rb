@@ -16,4 +16,6 @@ module TestData
     token: :red,
     is_human: false
   }.freeze
+
+  COLUMNS ||= [*('A'..'G')]
 end
