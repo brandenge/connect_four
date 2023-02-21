@@ -26,7 +26,7 @@ RSpec.describe Player do
 
 
   describe '#random_move' do
-    it 'returns players column selection' do
+    it 'returns a random column' do
       actual = @columns.include?(@player.random_move(@columns))
       expect(@player.random_move(@columns)).to be_a(String)
       expect(actual).to eq(true)

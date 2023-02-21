@@ -7,17 +7,17 @@ RSpec.describe Board do
     @player_1 = Player.new(*PLAYER_1.values)
     @player_2 = Player.new(*PLAYER_2.values)
 
-    @turn_1 = Turn.new(@player_1, 'A')
-    @turn_2 = Turn.new(@player_2, 'B')
-    @turn_3 = Turn.new(@player_1, 'A')
-    @turn_4 = Turn.new(@player_2, 'B')
-    @turn_5 = Turn.new(@player_1, 'A')
-    @turn_6 = Turn.new(@player_2, 'B')
-    @turn_7 = Turn.new(@player_1, 'A')
-    @turn_8 = Turn.new(@player_2, 'B')
-    @turn_9 = Turn.new(@player_1, 'A')
-    @turn_10 = Turn.new(@player_2, 'B')
-    @turn_11 = Turn.new(@player_1, 'A')
+    @turn_1 = Turn.new(@player_1, 5, 0)
+    @turn_2 = Turn.new(@player_2, 5, 1)
+    @turn_3 = Turn.new(@player_1, 4, 0)
+    @turn_4 = Turn.new(@player_2, 4, 1)
+    @turn_5 = Turn.new(@player_1, 3, 0)
+    @turn_6 = Turn.new(@player_2, 3, 1)
+    @turn_7 = Turn.new(@player_1, 2, 0)
+    @turn_8 = Turn.new(@player_2, 2, 1)
+    @turn_9 = Turn.new(@player_1, 1, 0)
+    @turn_10 = Turn.new(@player_2, 1, 1)
+    @turn_11 = Turn.new(@player_1, 0, 0)
 
     def @board.columns
       @columns
@@ -35,37 +35,18 @@ RSpec.describe Board do
       @grid = grid
     end
 
-    @mock_grid = [*(1..6)].map do |row|
-      [*(1..7)].map { |col| COLORS[:white] }
+    @fake_grid = [*(1..6)].map do |row|
+      [*(1..7)].map { |col| :white }
     end
 
-    def find_lowest_row(player_move)
-      slot_index = COLUMNS.index(player_move)
-      row_index = @mock_grid.length - 1
-      @mock_grid.each_with_index do |row, index|
-        if row[slot_index] == COLORS[:white]
-          row_index = index
-        else
-          break
-        end
-      end
-      row_index
-    end
-
-    def mock_turn(token, column)
-      @mock_grid[find_lowest_row(column)][COLUMNS.index(column)] = COLORS[token]
+    def set_mock_slot(row, col, color)
+      @fake_grid[row][col] = color
     end
   end
 
   describe '#initialize' do
     it 'can initialize' do
       expect(@board).to be_a(Board)
-    end
-  end
-
-  describe 'COLORS constant' do
-    it 'has a colors constant for the possible colors in the grid' do
-      expect(Board::COLORS).to eq(COLORS)
     end
   end
 
@@ -77,7 +58,7 @@ RSpec.describe Board do
 
   describe '#grid' do
     it 'has a grid' do
-      expect(@board.grid).to eq(@mock_grid)
+      expect(@board.grid).to eq(@fake_grid)
     end
   end
 
@@ -87,8 +68,7 @@ RSpec.describe Board do
     end
 
     it 'returns an array of Turn objects' do
-      @board.next_turn(@player_1)
-      @board.next_turn(@player_2)
+      @board.set_turns([@turn_1, @turn_2])
       actual = @board.turns.all? { |turn| turn.is_a?(Turn) }
       expect(actual).to eq(true)
     end
@@ -96,35 +76,35 @@ RSpec.describe Board do
 
   describe '#initialize_board' do
     it 'returns the initial grid' do
-      expect(@board.initialize_board).to eq(@mock_grid)
+      expect(@board.initialize_board).to eq(@fake_grid)
     end
   end
 
   describe '#render' do
     it 'returns the updated grid' do
-      expect(@board.render).to eq(@mock_grid)
+      expect(@board.render).to eq(@fake_grid)
     end
   end
 
   describe '#next_turn' do
-    it 'returns an array of Turn objects' do
-      expect(@board.next_turn(@player_1))
-    end
-
     it 'adds a Turn object to the array of turns' do
-      @board.next_turn(@player_1)
+      @board.next_turn(@player_2)
       expect(@board.turns.count).to eq(1)
       @board.next_turn(@player_2)
       expect(@board.turns.count).to eq(2)
-      @board.next_turn(@player_1)
+      @board.next_turn(@player_2)
       expect(@board.turns.count).to eq(3)
+    end
+
+    it 'returns nil' do
+      expect(@board.next_turn(@player_2)).to eq(nil)
     end
   end
 
   describe '#update' do
     it 'does nothing at the start' do
       @board.update
-      expect(@board.grid).to eq(@mock_grid)
+      expect(@board.grid).to eq(@fake_grid)
     end
 
     it 'returns nil' do
@@ -132,40 +112,40 @@ RSpec.describe Board do
     end
 
     it 'it updates the board after 1 turn' do
-      mock_turn(@player_1.token, 'A')
+      set_mock_slot(5, 0, :blue)
       @board.set_turns([@turn_1])
       @board.update
-      expect(@board.grid).to eq(@mock_grid)
+      expect(@board.grid).to eq(@fake_grid)
     end
 
     it 'it updates the board after 2 turns' do
-      mock_turn(@player_1.token, 'A')
-      mock_turn(@player_2.token, 'B')
+      set_mock_slot(5, 0, :blue)
+      set_mock_slot(5, 1, :red)
       @board.set_turns([@turn_1, @turn_2])
       @board.update
-      expect(@board.grid).to eq(@mock_grid)
+      expect(@board.grid).to eq(@fake_grid)
     end
 
     it 'it updates the board after 3 turns' do
-      mock_turn(@player_1.token, 'A')
-      mock_turn(@player_2.token, 'B')
-      mock_turn(@player_1.token, 'A')
+      set_mock_slot(5, 0, :blue)
+      set_mock_slot(5, 1, :red)
+      set_mock_slot(4, 0, :blue)
       @board.set_turns([@turn_1, @turn_2, @turn_3])
       @board.update
-      expect(@board.grid).to eq(@mock_grid)
+      expect(@board.grid).to eq(@fake_grid)
     end
 
     it 'updates the board after many turns' do
-      mock_turn(@player_1.token, 'A')
-      mock_turn(@player_2.token, 'B')
-      mock_turn(@player_1.token, 'A')
-      mock_turn(@player_2.token, 'B')
-      mock_turn(@player_1.token, 'A')
-      mock_turn(@player_2.token, 'B')
-      mock_turn(@player_1.token, 'A')
+      set_mock_slot(5, 0, :blue)
+      set_mock_slot(5, 1, :red)
+      set_mock_slot(4, 0, :blue)
+      set_mock_slot(4, 1, :red)
+      set_mock_slot(3, 0, :blue)
+      set_mock_slot(3, 1, :red)
+      set_mock_slot(2, 0, :blue)
       @board.set_turns([@turn_1, @turn_2, @turn_3, @turn_4, @turn_5, @turn_6, @turn_7])
       @board.update
-      expect(@board.grid).to eq(@mock_grid)
+      expect(@board.grid).to eq(@fake_grid)
     end
   end
 
@@ -217,29 +197,29 @@ RSpec.describe Board do
     end
 
     it 'returns an empty array when there are no columns valid' do
-      @mock_grid = [*(1..6)].map do |row|
-        [*(1..7)].map { |col| COLORS[:blue] }
+      @fake_grid = [*(1..6)].map do |row|
+        [*(1..7)].map { |col| :blue }
       end
-      @board.set_grid(@mock_grid)
+      @board.set_grid(@fake_grid)
       expect(@board.valid_columns).to eq([])
     end
   end
 
   describe '#winner' do
     it 'returns nil when there is no winner' do
-      expect(@board.winner(5, 0)).to eq(nil)
+      expect(@board.winner(row: 5, col: 0)).to eq(nil)
     end
 
-    it 'returns the winning player\'s color when they have won' do
+    it 'returns the winning player when they have won' do
       @board.set_turns([@turn_1, @turn_2, @turn_3, @turn_4, @turn_5, @turn_6, @turn_7])
       @board.update
-      expect(@board.winner(2, 0)).to eq(@board.turns.last.player)
+      expect(@board.winner(row: 2, col: 0)).to eq(@board.turns.last.player)
     end
 
-    it 'returns a different winning player\'s color when they have won' do
+    it 'returns a different winning player when they have won' do
       @board.set_turns([@turn_1, @turn_2, @turn_4, @turn_5, @turn_6, @turn_7, @turn_8])
       @board.update
-      expect(@board.winner(2, 1)).to eq(@board.turns.last.player)
+      expect(@board.winner(row: 2, col: 1)).to eq(@board.turns.last.player)
     end
   end
 end
