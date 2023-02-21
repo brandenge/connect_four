@@ -28,6 +28,8 @@ class Game
         break if game_over?
         if !player.is_human?
           sleep(0.5)
+          puts "The Computer is strategizing..."
+          sleep(1.5)
           puts BEEP_BOOP_BOP
           sleep(1)
         end
@@ -45,6 +47,7 @@ class Game
 
   def welcome
     puts TITLE
+    sleep(2)
     puts WELCOME_MESSAGE
   end
 
@@ -56,6 +59,10 @@ class Game
       user_input = gets.chomp
     end
     if user_input == "p"
+      puts "    ...\n\n"
+      sleep(1)
+      puts "    Ok. You will be the Blue block. Good luck!"
+      sleep(3)
       play_game
     elsif user_input == "q"
       Process.exit!
