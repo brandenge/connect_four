@@ -3,49 +3,38 @@ require './lib/messages'
 class Board
   include Messages
 
-  COLORS = {
-    blue: '[0;36;5;44;104mX[0m',
-    white: '[0;37;5;47;107m.[0m',
-    red: '[0;31;5;41;101mO[0m',
-    grey: '[0;37;5;40;100m [0m'
-  }.freeze
-
   attr_reader :grid
 
   def initialize
     @grid = initialize_board
     @turns = []
     @columns = [*('A'..'G')]
-    @last_move_index = {
-      row: @grid.length - 1,
-      column: 0,
-    }
   end
 
   def initialize_board
     @grid = [*(1..6)].map do |row|
-      [*(1..7)].map { |col| (COLORS[:white]) }
+      [*(1..7)].map { |col| :white }
     end
   end
 
   def render
     blocks = {
-      line: '[0;37;5;40;100m                                                                        [0m',
-      border: '[0;37;5;40;100m  [0m',
-      blue: '[0;36;5;44;104m        [0m',
-      white: '[0;37;5;47;107m        [0m',
-      red: '[0;31;5;41;101m        [0m'
+      line: "[0;37;5;40;100m#{' ' * 72}[0m",
+      border: "[0;37;5;40;100m#{' ' * 2}[0m",
+      blue: "[0;36;5;44;104m#{' ' * 8}[0m",
+      white: "[0;37;5;47;107m#{' ' * 8}[0m",
+      red: "[0;31;5;41;101m#{' ' * 8}[0m"
     }
     padding = '      '
     puts "\n\n"
     render_col_text
     @grid.each do |row|
-      puts padding + blocks[:line] 
+      puts padding + blocks[:line]
       row = row.map do |slot|
         case slot
-          when COLORS[:white] then blocks[:white]
-          when COLORS[:blue] then blocks[:blue]
-          when COLORS[:red] then blocks[:red]
+          when :white then blocks[:white]
+          when :blue then blocks[:blue]
+          when :red then blocks[:red]
         end
       end
       row = padding + blocks[:border] + row.join(blocks[:border]) + blocks[:border]
@@ -59,24 +48,24 @@ class Board
   def render_col_text
     puts COLUMN_TEXT
   end
-  
+
   def next_turn(player)
     if player.is_human?
-      @turns << Turn.new(player, player.player_move(valid_columns))
+      player_move = player.player_move(valid_columns)
     else
-      @turns << Turn.new(player, player.random_move(valid_columns))
+      player_move = player.random_move(valid_columns)
     end
-    @last_move_index[:row] = find_lowest_row(@turns.last.column)
-    @last_move_index[:column] = @columns.index(@turns.last.column)
+    col = @columns.index(player_move)
+    row = find_lowest_row(player_move)
+    @turns << Turn.new(player, row, col)
     nil
   end
 
   def update
     initialize_board
     @turns.each do |turn|
-      player_move = turn.column
-      @grid[find_lowest_row(player_move)][@columns.index(player_move)] =
-        COLORS[turn.player.token]
+      @grid[turn.row][turn.col] =
+        turn.player.color
     end
     nil
   end
@@ -85,7 +74,7 @@ class Board
     slot_index = @columns.index(player_move)
     row_index = @grid.length - 1
     @grid.each_with_index do |row, index|
-      if row[slot_index] == COLORS[:white]
+      if row[slot_index] == :white
         row_index = index
       else
         break
@@ -97,57 +86,108 @@ class Board
   def valid_columns
     columns = [@columns, @grid[0]]
     checks = columns.transpose
-    available_columns = checks.filter { |(column, color)| color == COLORS[:white] }
-    available_columns.map { |(column)| column }
+    available_columns = checks.filter { |(column, color)| color == :white }
+    available_columns.map { |(column, _)| column }
   end
 
-  def winner(row = @last_move_index[:row],
-             col = @last_move_index[:column],
-             direction = nil,
-             count = 1)
+  def winner(row: @turns.last&.row,
+             col: @turns.last&.col,
+             direction: nil,
+             count: 1)
+
     return nil if @turns.empty?
-    player_color = COLORS[@turns.last.player.token]
+    player_color = @turns.last.player.color
     if count == 4
       return @turns.last.player
-    elsif @grid[row][col] == nil
+    elsif row < 0 || col < 0 || @grid[row]&.[](col) == nil
       return nil
     end
-    if direction == nil
-      case player_color
-        when @grid[row - 1]&.[](col + 1)
-          winner(row -1, col + 1, :top_right, count + 1)
-        when @grid[row]&.[](col + 1)
-          winner(row, col + 1, :right, count + 1)
-        when @grid[row + 1]&.[](col + 1)
-          winner(row + 1, col + 1, :bottom_right, count + 1)
-        when @grid[row + 1]&.[](col)
-          winner(row + 1, col, :bottom, count + 1)
-        when @grid[row + 1]&.[](col - 1)
-          winner(row + 1, col - 1, :bottom_left, count + 1)
-        when @grid[row]&.[](col - 1)
-          winner(row, col - 1, :left, count + 1)
-        when @grid[row - 1]&.[](col - 1)
-          winner(row - 1, col - 1, :top_left, count + 1)
+
+    adjacent_slots = {
+      top_right: {
+        row: row - 1,
+        col: col + 1,
+        color: @grid[row - 1]&.[](col + 1),
+        opposite: :bottom_left
+      },
+      right: {
+        row: row,
+        col: col + 1,
+        color: @grid[row]&.[](col + 1),
+        opposite: :left
+      },
+      bottom_right: {
+        row: row + 1,
+        col: col + 1,
+        color: @grid[row + 1]&.[](col + 1),
+        opposite: :top_left
+      },
+      bottom: {
+        row: row + 1,
+        col: col,
+        color: @grid[row + 1]&.[](col),
+        opposite: nil
+      },
+      bottom_left: {
+        row: row + 1,
+        col: col - 1,
+        color: @grid[row + 1]&.[](col - 1),
+        opposite: :top_right
+      },
+      left: {
+        row: row,
+        col: col - 1,
+        color: @grid[row]&.[](col - 1),
+        opposite: :right
+      },
+      top_left: {
+        row: row - 1,
+        col: col - 1,
+        color: @grid[row - 1]&.[](col - 1),
+        opposite: :bottom_right
+      }
+    }
+
+    result_1 = nil
+    result_2 = nil
+    result_3 = nil
+
+    adjacent_slots.each do |adj_direction, adj_slot|
+      if direction == nil && adj_slot[:color] == player_color
+        arguments = {
+          row: adj_slot[:row],
+          col: adj_slot[:col],
+          direction: adj_direction,
+          count: count + 1
+        }
+        result_1 = winner(arguments)
+
+        if adjacent_slots[adj_slot[:opposite]]&.[](:color) == player_color
+          arguments[:count] = count + 2
+          result_2 = winner(arguments)
+          arguments = {
+            row: adjacent_slots[adj_slot[:opposite]][:row],
+            col: adjacent_slots[adj_slot[:opposite]][:col],
+            direction: adj_slot[:opposite],
+            count: count + 2
+          }
+          result_3 = winner(arguments)
+        end
       end
-    else
-      case
-        when direction == :top_right && @grid[row - 1]&.[](col + 1) == player_color
-          winner(row -1, col + 1, :top_right, count + 1)
-        when direction == :right && @grid[row]&.[](col + 1) == player_color
-          winner(row, col + 1, :right, count + 1)
-        when direction == :bottom_right &&
-             @grid[row + 1]&.[](col + 1) == player_color
-          winner(row + 1, col + 1, :bottom_right, count + 1)
-        when direction == :bottom && @grid[row + 1]&.[](col) == player_color
-          winner(row + 1, col, :bottom, count + 1)
-        when direction == :bottom_left &&
-             @grid[row + 1]&.[](col - 1) == player_color
-          winner(row + 1, col - 1, :bottom_left, count + 1)
-        when direction == :left && @grid[row]&.[](col - 1) == player_color
-          winner(row, col - 1, :left, count + 1)
-        when direction == :top_left && @grid[row - 1]&.[](col - 1) == player_color
-          winner(row - 1, col - 1, :top_left, count + 1)
-      end
+    end
+
+    return result_1 if result_1
+    return result_2 if result_2
+    return result_3 if result_3
+
+    if direction != nil && adjacent_slots[direction][:color] == player_color
+      arguments = {
+        row: adjacent_slots[direction][:row],
+        col: adjacent_slots[direction][:col],
+        direction: direction,
+        count: count + 1
+      }
+      return winner(arguments)
     end
   end
 end

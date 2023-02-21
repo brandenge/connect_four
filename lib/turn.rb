@@ -2,12 +2,14 @@ require 'date'
 
 class Turn
   attr_reader :player,
-              :column,
+              :row,
+              :col,
               :timestamp
 
-  def initialize(player, column)
+  def initialize(player, row, col)
     @player = player
-    @column = column
+    @row = row
+    @col = col
     @timestamp = DateTime.now
   end
 end
