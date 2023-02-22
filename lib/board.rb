@@ -51,14 +51,34 @@ class Board
 
   def next_turn(player)
     if player.is_human?
-      player_move = player.player_move(valid_columns)
+      move = player.player_move(valid_columns)
+      row = find_lowest_row(move)
+      col = @columns.index(move)
     else
-      player_move = player.random_move(valid_columns)
+      row, col = computer_move(valid_columns)
     end
-    col = @columns.index(player_move)
-    row = find_lowest_row(player_move)
     @turns << Turn.new(player, row, col)
     nil
+  end
+
+  def computer_move(valid_columns)
+    move = check_for_win(:red)
+    return move if move
+    move = check_for_win(:blue)
+    return move if move
+    find_lowest_slots(valid_columns).sample
+  end
+
+  def check_for_win(color)
+    lowest_slots = find_lowest_slots(valid_columns)
+    move = nil
+    lowest_slots.each do |(row, col)|
+      if winner({row: row, col: col, color: color})
+        move = [row, col]
+        break
+      end
+    end
+    move
   end
 
   def update
@@ -67,8 +87,8 @@ class Board
     nil
   end
 
-  def find_lowest_row(player_move)
-    slot_index = @columns.index(player_move)
+  def find_lowest_row(column)
+    slot_index = @columns.index(column)
     row_index = @grid.length - 1
     @grid.each_with_index do |row, index|
       if row[slot_index] == :white
@@ -80,11 +100,17 @@ class Board
     row_index
   end
 
+  def find_lowest_slots(valid_columns)
+    valid_columns.map do |column|
+      [find_lowest_row(column), @columns.index(column)]
+    end
+  end
+
   def valid_columns
     columns = [@columns, @grid[0]]
     checks = columns.transpose
     available_columns = checks.filter { |(column, color)| color == :white }
-    available_columns.map { |(column, _)| column }
+    available_columns.map { |(column)| column }
   end
 
   def winner(row: @turns.last&.row,
