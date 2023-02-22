@@ -213,13 +213,13 @@ RSpec.describe Board do
     it 'returns the winning player when they have won' do
       @board.set_turns([@turn_1, @turn_2, @turn_3, @turn_4, @turn_5, @turn_6, @turn_7])
       @board.update
-      expect(@board.winner(row: 2, col: 0)).to eq(@board.turns.last.player)
+      expect(@board.winner(row: 2, col: 0)).to eq(@board.turns.last.player.color)
     end
 
     it 'returns a different winning player when they have won' do
       @board.set_turns([@turn_1, @turn_2, @turn_4, @turn_5, @turn_6, @turn_7, @turn_8])
       @board.update
-      expect(@board.winner(row: 2, col: 1)).to eq(@board.turns.last.player)
+      expect(@board.winner(row: 2, col: 1)).to eq(@board.turns.last.player.color)
     end
   end
 end
