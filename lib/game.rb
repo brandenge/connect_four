@@ -14,6 +14,8 @@ class Game
       Player.new('Player 2', :red, false)
     ]
     @board = Board.new
+    @starting_time = 0
+    @ending_time = 0
   end
 
   def start
@@ -23,6 +25,7 @@ class Game
 
   def play_game
     @board.render
+    starting_time
     until game_over?
       @players.each do |player|
         break if game_over?
@@ -38,7 +41,16 @@ class Game
         @board.render
       end
     end
+    ending_time
     game_over
+  end
+
+  def starting_time
+    @starting_time += Process.clock_gettime(Process::CLOCK_MONOTONIC)
+  end
+
+  def ending_time
+    @ending_time += Process.clock_gettime(Process::CLOCK_MONOTONIC)
   end
 
   def game_over?
@@ -78,10 +90,21 @@ class Game
     sleep(1)
     if @board.valid_columns.empty?
       puts DRAW_MESSAGE
+      sleep(1)
+      puts "You finished the game in #{elapsed_time} seconds!"
     elsif @players.find { |player| player.color == @board.winner }.is_human?
       puts HUMAN_WIN_MESSAGE
+      sleep(1)
+      puts "You finished the game in #{elapsed_time} seconds!"
     else
       puts COMPUTER_WIN_MESSAGE
+      sleep(1)
+      puts "You finished the game in #{elapsed_time} seconds!"
     end
+  end
+
+  def elapsed_time
+    elapsed_time = @ending_time - @starting_time
+    elapsed_time.round(2)
   end
 end
