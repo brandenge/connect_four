@@ -100,54 +100,16 @@ class Board
       return nil
     end
 
-    result_1 = nil
-    result_2 = nil
-    result_3 = nil
-
+    result = nil
     adj_directions = [:top_right, :right, :bottom_right, :bottom, :bottom_left, :left, :top_left]
 
-    adj_directions.each do |adj_direction|
+    direction == nil && adj_directions.each do |adj_direction|
       adj_slot = adjacent_slot(row, col, adj_direction)
-      if direction == nil && adj_slot[:color] == color
-        arguments = {
-          row: adj_slot[:row],
-          col: adj_slot[:col],
-          color: color,
-          direction: adj_direction,
-          count: count + 1
-        }
-        result_1 = winner(arguments)
-
-        if adjacent_slot(row, col, adj_slot[:opposite])&.[](:color) == color
-          arguments[:count] = count + 2
-          result_2 = winner(arguments)
-          arguments = {
-            row: adjacent_slot(row, col, adj_slot[:opposite])[:row],
-            col: adjacent_slot(row, col, adj_slot[:opposite])[:col],
-            color: color,
-            direction: adj_slot[:opposite],
-            count: count + 2
-          }
-          result_3 = winner(arguments)
-        end
-      end
+      result = first_adjacent_match(row, col, color, adj_direction, count)
+      break if result
     end
-
-    return result_1 if result_1
-    return result_2 if result_2
-    return result_3 if result_3
-
-    adj_slot = adjacent_slot(row, col, direction)
-    if direction != nil && adj_slot[:color] == color
-      arguments = {
-        row: adj_slot[:row],
-        col: adj_slot[:col],
-        color: color,
-        direction: direction,
-        count: count + 1
-      }
-      return winner(arguments)
-    end
+    return result if result
+    another_adjacent_match(row, col, color, direction, count)
   end
 
   def adjacent_slot(row, col, direction)
@@ -198,15 +160,49 @@ class Board
     slots[direction]
   end
 
-  def adjacent_match_from_end(row, col, color, direction, count)
-
+  def first_adjacent_match(row, col, color, adj_direction, count)
+    adj_slot = adjacent_slot(row, col, adj_direction)
+    arguments = {
+      row: adj_slot[:row],
+      col: adj_slot[:col],
+      color: color,
+      direction: adj_direction,
+      count: count + 2
+    }
+    if adj_slot[:color] == color &&
+      adjacent_slot(row, col, adj_slot[:opposite])&.[](:color) == color
+      return winner(arguments)
+      arguments[:direction] = adj_slot[:opposite]
+      return opposite_adjacent_match(row, col, color, adj_direction, count)
+    elsif adj_slot[:color] == color
+      arguments[:count] = count + 1
+      return winner(arguments)
+    end
   end
 
-  def adjacent_match_from_middle(row, col, color, direction, count)
-
+  def opposite_adjacent_match(row, col, color, adj_direction, count)
+    adj_slot = adjacent_slot(row, col, adj_direction)
+    arguments = {
+      row: adjacent_slot(row, col, adj_slot[:opposite])[:row],
+      col: adjacent_slot(row, col, adj_slot[:opposite])[:col],
+      color: color,
+      direction: adj_slot[:opposite],
+      count: count
+    }
+    return winner(arguments)
   end
 
-  def adjacent_match_in_line(row, col, color, direction, count)
-
+  def another_adjacent_match(row, col, color, direction, count)
+    adj_slot = adjacent_slot(row, col, direction)
+    if direction != nil && adj_slot[:color] == color
+      arguments = {
+        row: adj_slot[:row],
+        col: adj_slot[:col],
+        color: color,
+        direction: direction,
+        count: count + 1
+      }
+      return winner(arguments)
+    end
   end
 end
