@@ -28,7 +28,7 @@ class Game
         break if game_over?
         if !player.is_human?
           sleep(0.5)
-          puts "The Computer is strategizing..."
+          puts "The Computer is strategizing...\n\n"
           sleep(1.5)
           puts BEEP_BOOP_BOP
           sleep(1)
@@ -78,7 +78,7 @@ class Game
     sleep(1)
     if @board.valid_columns.empty?
       puts DRAW_MESSAGE
-    elsif @board.winner.is_human?
+    elsif @players.find { |player| player.color == @board.winner }.is_human?
       puts HUMAN_WIN_MESSAGE
     else
       puts COMPUTER_WIN_MESSAGE

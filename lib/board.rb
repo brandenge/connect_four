@@ -63,10 +63,7 @@ class Board
 
   def update
     initialize_board
-    @turns.each do |turn|
-      @grid[turn.row][turn.col] =
-        turn.player.color
-    end
+    @turns.each { |turn| @grid[turn.row][turn.col] = turn.player.color }
     nil
   end
 
@@ -92,18 +89,31 @@ class Board
 
   def winner(row: @turns.last&.row,
              col: @turns.last&.col,
+             color: @turns.last&.player&.color,
              direction: nil,
              count: 1)
 
     return nil if @turns.empty?
-    player_color = @turns.last.player.color
     if count == 4
-      return @turns.last.player
+      return color
     elsif row < 0 || col < 0 || @grid[row]&.[](col) == nil
       return nil
     end
 
-    adjacent_slots = {
+    result = nil
+    adj_directions = [:top_right, :right, :bottom_right, :bottom, :bottom_left, :left, :top_left]
+
+    direction == nil && adj_directions.each do |adj_direction|
+      adj_slot = adjacent_slot(row, col, adj_direction)
+      result = first_adjacent_match(row, col, color, adj_direction, count)
+      break if result
+    end
+    return result if result
+    another_adjacent_match(row, col, color, direction, count)
+  end
+
+  def adjacent_slot(row, col, direction)
+    slots = {
       top_right: {
         row: row - 1,
         col: col + 1,
@@ -147,43 +157,48 @@ class Board
         opposite: :bottom_right
       }
     }
+    slots[direction]
+  end
 
-    result_1 = nil
-    result_2 = nil
-    result_3 = nil
-
-    adjacent_slots.each do |adj_direction, adj_slot|
-      if direction == nil && adj_slot[:color] == player_color
-        arguments = {
-          row: adj_slot[:row],
-          col: adj_slot[:col],
-          direction: adj_direction,
-          count: count + 1
-        }
-        result_1 = winner(arguments)
-
-        if adjacent_slots[adj_slot[:opposite]]&.[](:color) == player_color
-          arguments[:count] = count + 2
-          result_2 = winner(arguments)
-          arguments = {
-            row: adjacent_slots[adj_slot[:opposite]][:row],
-            col: adjacent_slots[adj_slot[:opposite]][:col],
-            direction: adj_slot[:opposite],
-            count: count + 2
-          }
-          result_3 = winner(arguments)
-        end
-      end
+  def first_adjacent_match(row, col, color, adj_direction, count)
+    adj_slot = adjacent_slot(row, col, adj_direction)
+    arguments = {
+      row: adj_slot[:row],
+      col: adj_slot[:col],
+      color: color,
+      direction: adj_direction,
+      count: count + 2
+    }
+    if adj_slot[:color] == color &&
+      adjacent_slot(row, col, adj_slot[:opposite])&.[](:color) == color
+      return winner(arguments)
+      arguments[:direction] = adj_slot[:opposite]
+      return opposite_adjacent_match(row, col, color, adj_direction, count)
+    elsif adj_slot[:color] == color
+      arguments[:count] = count + 1
+      return winner(arguments)
     end
+  end
 
-    return result_1 if result_1
-    return result_2 if result_2
-    return result_3 if result_3
+  def opposite_adjacent_match(row, col, color, adj_direction, count)
+    adj_slot = adjacent_slot(row, col, adj_direction)
+    arguments = {
+      row: adjacent_slot(row, col, adj_slot[:opposite])[:row],
+      col: adjacent_slot(row, col, adj_slot[:opposite])[:col],
+      color: color,
+      direction: adj_slot[:opposite],
+      count: count
+    }
+    return winner(arguments)
+  end
 
-    if direction != nil && adjacent_slots[direction][:color] == player_color
+  def another_adjacent_match(row, col, color, direction, count)
+    adj_slot = adjacent_slot(row, col, direction)
+    if direction != nil && adj_slot[:color] == color
       arguments = {
-        row: adjacent_slots[direction][:row],
-        col: adjacent_slots[direction][:col],
+        row: adj_slot[:row],
+        col: adj_slot[:col],
+        color: color,
         direction: direction,
         count: count + 1
       }
