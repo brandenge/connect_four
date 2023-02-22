@@ -25,8 +25,4 @@ class Player
     end
     player_selection
   end
-
-  def random_move(valid_columns)
-    valid_columns.sample
-  end
 end
