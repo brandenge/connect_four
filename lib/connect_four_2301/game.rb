@@ -1,8 +1,8 @@
-require './lib/player'
-require './lib/board'
-require './lib/turn'
-require './lib/title'
-require './lib/messages'
+require './lib/connect_four_2301/player'
+require './lib/connect_four_2301/board'
+require './lib/connect_four_2301/turn'
+require './lib/connect_four_2301/title'
+require './lib/connect_four_2301/messages'
 
 class Game
   include Title
@@ -38,7 +38,7 @@ class Game
           puts BEEP_BOOP_BOP
           sleep(1)
         end
-        @board.next_turn(player)
+        @board.next_turn(player.name, player.color, player.is_human?)
         @board.update
         puts `clear`
         @board.render
