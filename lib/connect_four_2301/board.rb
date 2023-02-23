@@ -12,6 +12,7 @@ class Board
   end
 
   def initialize_board
+    @turns = []
     @slots = [*(1..6)].map do |row|
       [*(1..7)].map { |col| :white }
     end
@@ -91,7 +92,6 @@ class Board
   end
 
   def update
-    initialize_board
     @turns.each { |turn| @slots[turn.row][turn.col] = turn.color }
     nil
   end
