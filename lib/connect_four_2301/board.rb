@@ -12,10 +12,10 @@ class Board
   end
 
   def initialize_board
+    @turns = []
     @slots = [*(1..6)].map do |row|
       [*(1..7)].map { |col| :white }
     end
-    @turns = []
   end
 
   def render
