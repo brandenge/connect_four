@@ -1,13 +1,13 @@
 module TestData
   PLAYER_1 ||= {
     name: 'Branden',
-    token: :blue,
-    is_human: false
+    color: :blue,
+    is_human: true
   }.freeze
 
   PLAYER_2 ||= {
     name: 'Alec',
-    token: :red,
+    color: :red,
     is_human: false
   }.freeze
 end
