@@ -1,4 +1,4 @@
-require './lib/messages'
+require './lib/connect_four_2301/messages'
 
 class Board
   include Messages
