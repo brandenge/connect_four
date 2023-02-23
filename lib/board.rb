@@ -15,6 +15,7 @@ class Board
     @grid = [*(1..6)].map do |row|
       [*(1..7)].map { |col| :white }
     end
+    @turns = []
   end
 
   def render
@@ -82,7 +83,7 @@ class Board
   end
 
   def update
-    initialize_board
+    # initialize_board
     @turns.each { |turn| @grid[turn.row][turn.col] = turn.player.color }
     nil
   end
