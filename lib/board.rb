@@ -3,16 +3,16 @@ require './lib/messages'
 class Board
   include Messages
 
-  attr_reader :grid
+  attr_reader :slots
 
   def initialize
-    @grid = initialize_board
+    @slots = initialize_board
     @turns = []
     @columns = [*('A'..'G')]
   end
 
   def initialize_board
-    @grid = [*(1..6)].map do |row|
+    @slots = [*(1..6)].map do |row|
       [*(1..7)].map { |col| :white }
     end
   end
@@ -28,7 +28,7 @@ class Board
     padding = '      '
     puts "\n\n"
     render_col_text
-    @grid.each do |row|
+    @slots.each do |row|
       puts padding + blocks[:line]
       row = row.map do |slot|
         case slot
@@ -42,23 +42,32 @@ class Board
     end
     puts padding + blocks[:line]
     puts "\n\n"
-    @grid
   end
 
   def render_col_text
     puts COLUMN_TEXT
   end
 
-  def next_turn(player)
-    if player.is_human?
-      move = player.player_move(valid_columns)
+  def next_turn(name, color, player_is_human)
+    if player_is_human
+      move = player_move(name, valid_columns)
       row = find_lowest_row(move)
       col = @columns.index(move)
     else
       row, col = computer_move(valid_columns)
     end
-    @turns << Turn.new(player, row, col)
+    @turns << Turn.new(row, col, color)
     nil
+  end
+
+  def player_move(name, valid_columns)
+    puts "#{name}, please select a letter from the following columns: #{valid_columns.join(", ")}."
+    player_selection = gets.chomp.upcase
+    until valid_columns.include?(player_selection)
+      puts "Sorry, that is not a valid selection. Please choose from one of the following: #{valid_columns.join(", ")}."
+      player_selection = gets.chomp.upcase
+    end
+    player_selection
   end
 
   def computer_move(valid_columns)
@@ -83,14 +92,14 @@ class Board
 
   def update
     initialize_board
-    @turns.each { |turn| @grid[turn.row][turn.col] = turn.player.color }
+    @turns.each { |turn| @slots[turn.row][turn.col] = turn.color }
     nil
   end
 
   def find_lowest_row(column)
     slot_index = @columns.index(column)
-    row_index = @grid.length - 1
-    @grid.each_with_index do |row, index|
+    row_index = @slots.length - 1
+    @slots.each_with_index do |row, index|
       if row[slot_index] == :white
         row_index = index
       else
@@ -107,7 +116,7 @@ class Board
   end
 
   def valid_columns
-    columns = [@columns, @grid[0]]
+    columns = [@columns, @slots[0]]
     checks = columns.transpose
     available_columns = checks.filter { |(column, color)| color == :white }
     available_columns.map { |(column)| column }
@@ -115,14 +124,14 @@ class Board
 
   def winner(row: @turns.last&.row,
              col: @turns.last&.col,
-             color: @turns.last&.player&.color,
+             color: @turns.last&.color,
              direction: nil,
              count: 1)
 
     return nil if @turns.empty?
     if count == 4
       return color
-    elsif row < 0 || col < 0 || @grid[row]&.[](col) == nil
+    elsif row < 0 || col < 0 || @slots[row]&.[](col) == nil
       return nil
     end
 
@@ -139,47 +148,51 @@ class Board
   end
 
   def adjacent_slot(row, col, direction)
+    up = row - 1
+    right = col + 1
+    down = row + 1
+    left = col - 1
     slots = {
       top_right: {
-        row: row - 1,
-        col: col + 1,
-        color: @grid[row - 1]&.[](col + 1),
+        row: up,
+        col: right,
+        color: @slots[up]&.[](right),
         opposite: :bottom_left
       },
       right: {
         row: row,
-        col: col + 1,
-        color: @grid[row]&.[](col + 1),
+        col: right,
+        color: @slots[row]&.[](right),
         opposite: :left
       },
       bottom_right: {
-        row: row + 1,
-        col: col + 1,
-        color: @grid[row + 1]&.[](col + 1),
+        row: down,
+        col: right,
+        color: @slots[down]&.[](right),
         opposite: :top_left
       },
       bottom: {
-        row: row + 1,
+        row: down,
         col: col,
-        color: @grid[row + 1]&.[](col),
+        color: @slots[down]&.[](col),
         opposite: nil
       },
       bottom_left: {
-        row: row + 1,
-        col: col - 1,
-        color: @grid[row + 1]&.[](col - 1),
+        row: down,
+        col: left,
+        color: @slots[down]&.[](left),
         opposite: :top_right
       },
       left: {
         row: row,
-        col: col - 1,
-        color: @grid[row]&.[](col - 1),
+        col: left,
+        color: @slots[row]&.[](left),
         opposite: :right
       },
       top_left: {
-        row: row - 1,
-        col: col - 1,
-        color: @grid[row - 1]&.[](col - 1),
+        row: up,
+        col: left,
+        color: @slots[up]&.[](left),
         opposite: :bottom_right
       }
     }

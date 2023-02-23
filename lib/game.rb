@@ -33,7 +33,7 @@ class Game
           puts BEEP_BOOP_BOP
           sleep(1)
         end
-        @board.next_turn(player)
+        @board.next_turn(player.name, player.color, player.is_human?)
         @board.update
         @board.render
       end
